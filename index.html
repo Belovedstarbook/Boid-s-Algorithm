@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boids Simulation</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            /* Stack controls and SVG vertically */
+        }
+
+        #controls {
+            position: relative;
+            /* No longer absolute */
+            z-index: 1;
+            /* Ensure it stays on top of the SVG */
+            background-color: rgba(0, 0, 0, 0.7);
+            /* Semi-transparent background */
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="controls">
+        <label for="boidCount">Boid Count:</label>
+        <input type="range" id="boidCount" min="10" max="1000" value="100">
+        <label for="perceptionRange">Boid Count:</label>
+        <input type="range" id="boidCount" min="10" max="1000" value="100">
+    </div>
+
+
+    <script src="boids.js"></script>
+
+
+</body>
+
+</html>
