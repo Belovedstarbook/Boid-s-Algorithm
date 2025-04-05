@@ -3,6 +3,11 @@ let width = window.innerWidth, height = window.innerHeight;
 let numBoids = 100;
 let perceptionRadius = 20;  // Range for detecting neighbors
 
+let avoidfactor = 0.02;
+let matchingfactor = 0.05;
+let centeringfactor = 0.05;
+// Create a div for controls    
+
 function createBoids(count) {
     return d3.range(count).map(() => ({
         x: Math.random() * width,
@@ -56,8 +61,8 @@ function applyFlocking() {
         centerX /= neighbors.length; // Cohesion: move toward center of mass
         centerY /= neighbors.length;
 
-        boid.vx += (avgVX - boid.vx) * 0.05 + separationX * 0.02 + (centerX - boid.x) * 0.01;
-        boid.vy += (avgVY - boid.vy) * 0.05 + separationY * 0.02 + (centerY - boid.y) * 0.01;
+        boid.vx += (avgVX - boid.vx) * matchingfactor + separationX * avoidfactor + (centerX - boid.x) * centeringfactor;
+        boid.vy += (avgVY - boid.vy) * matchingfactor + separationY * avoidfactor + (centerY - boid.y) * centeringfactor;
     });
 }
 
@@ -108,7 +113,7 @@ document.getElementById("boidCount").addEventListener("input", function () {
 document.getElementById("perceptionRange").addEventListener("input", function () {
     perceptionRadius = this.value;
     document.getElementById("perceptionRangeValue").textContent = perceptionRadius;
-//     updateBoids();
+    //     updateBoids();
 });
 
 
