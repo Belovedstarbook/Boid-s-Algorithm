@@ -158,6 +158,42 @@ document.getElementById("maxSpeed").addEventListener("input", function () {
     document.getElementById("maxSpeedValue").textContent = this.value; // Update the displayed value
 });
 
+// FPS calculation variables
+let lastFrameTime = performance.now();
+let fps = 0;
+
+// Function to calculate and display FPS
+function calculateFPS() {
+    const now = performance.now();
+    const delta = now - lastFrameTime; // Time since the last frame
+    fps = Math.round(1000 / delta); // Calculate FPS
+    lastFrameTime = now;
+
+    // Update the FPS display
+    document.getElementById("fpsDisplay").textContent = `FPS: ${fps}`;
+}
+
+
+// Update avoidFactor slider
+document.getElementById("avoidFactor").addEventListener("input", function () {
+    avoidfactor = +this.value; // Update the avoidfactor value
+    document.getElementById("avoidFactorValue").textContent = this.value; // Update the displayed value
+});
+
+// Update matchingFactor slider
+document.getElementById("matchingFactor").addEventListener("input", function () {
+    matchingfactor = +this.value; // Update the matchingfactor value
+    document.getElementById("matchingFactorValue").textContent = this.value; // Update the displayed value
+});
+
+// Update centeringFactor slider
+document.getElementById("centeringFactor").addEventListener("input", function () {
+    centeringfactor = +this.value; // Update the centeringfactor value
+    document.getElementById("centeringFactorValue").textContent = this.value; // Update the displayed value
+});
 
 // Animation loop
-d3.timer(updateBoids);
+d3.timer(() => {
+    updateBoids(); // Update the boids
+    calculateFPS(); // Calculate and display FPS
+});
