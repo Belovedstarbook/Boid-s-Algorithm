@@ -1,7 +1,7 @@
 let width = window.innerWidth, height = window.innerHeight;
 // let width = 500, height = 500;
 let numBoids = 100;
-const perceptionRadius = 20;  // Range for detecting neighbors
+let perceptionRadius = 20;  // Range for detecting neighbors
 
 function createBoids(count) {
     return d3.range(count).map(() => ({
@@ -34,7 +34,7 @@ function applyFlocking() {
         let neighbors = boids.filter(other => {
             let dx = other.x - boid.x;
             let dy = other.y - boid.y;
-            return Math.sqrt(dx * dx + dy * dy) < perceptionRadius && other !== boid;
+            return (Math.sqrt(dx * dx + dy * dy) < perceptionRadius) && (other !== boid);
         });
 
         if (neighbors.length === 0) return;
@@ -88,8 +88,11 @@ window.addEventListener("resize", () => {
 });
 
 // Handle slider input
-document.getElementById("boidCount").addEventListener("input", function() {
+document.getElementById("boidCount").addEventListener("input", function () {
     numBoids = +this.value;
+    document.getElementById("boidCountValue").textContent = numBoids; // Update the displayed value
+
+    // numBoids = this.value;
     boids = createBoids(numBoids);
 
     boidElements = svg.selectAll("circle").data(boids);
@@ -101,6 +104,12 @@ document.getElementById("boidCount").addEventListener("input", function() {
         .merge(boidElements);
 });
 
+
+document.getElementById("perceptionRange").addEventListener("input", function () {
+    perceptionRadius = this.value;
+    document.getElementById("perceptionRangeValue").textContent = perceptionRadius;
+//     updateBoids();
+});
 
 
 // Animation loop
