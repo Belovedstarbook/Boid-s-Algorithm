@@ -8,6 +8,10 @@ let matchingfactor = 0.05;
 let centeringfactor = 0.05;
 // Create a div for controls    
 
+// Initialize minSpeed and maxSpeed
+let minSpeed = 0.5;
+let maxSpeed = 2;
+
 function createBoids(count) {
     return d3.range(count).map(() => ({
         x: Math.random() * width,
@@ -71,6 +75,18 @@ function updateBoids() {
     applyFlocking();
 
     boids.forEach(boid => {
+
+        // Calculate speed
+        const speed = Math.sqrt(boid.vx * boid.vx + boid.vy * boid.vy);
+
+        if (speed > maxSpeed) {
+            boid.vx = (boid.vx / speed) * maxSpeed;
+            boid.vy = (boid.vy / speed) * maxSpeed;
+        } else if (speed < minSpeed) {
+            boid.vx = (boid.vx / speed) * minSpeed;
+            boid.vy = (boid.vy / speed) * minSpeed;
+        }
+
         boid.x += boid.vx;
         boid.y += boid.vy;
 
@@ -90,6 +106,7 @@ window.addEventListener("resize", () => {
     height = window.innerHeight;
     svg.attr("width", width).attr("height", height);
     boids = createBoids(numBoids);
+    // updateBoids();
 });
 
 // Handle slider input
@@ -114,6 +131,31 @@ document.getElementById("perceptionRange").addEventListener("input", function ()
     perceptionRadius = this.value;
     document.getElementById("perceptionRangeValue").textContent = perceptionRadius;
     //     updateBoids();
+});
+
+
+// Update minSpeed slider
+document.getElementById("minSpeed").addEventListener("input", function () {
+    minSpeed = +this.value;
+    // Ensure minSpeed is not greater than maxSpeed
+    if (minSpeed > maxSpeed) {
+        minSpeed = maxSpeed;
+        this.value = minSpeed; // Update the slider value
+    }
+
+    document.getElementById("minSpeedValue").textContent = this.value; // Update the displayed value
+});
+
+// Update maxSpeed slider
+document.getElementById("maxSpeed").addEventListener("input", function () {
+    maxSpeed = +this.value;
+
+    // Ensure maxSpeed is not less than minSpeed
+    if (maxSpeed < minSpeed) {
+        maxSpeed = minSpeed;
+        this.value = maxSpeed; // Update the slider value
+    }
+    document.getElementById("maxSpeedValue").textContent = this.value; // Update the displayed value
 });
 
 
