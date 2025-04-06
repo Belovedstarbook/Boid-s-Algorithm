@@ -23,6 +23,8 @@
             font-size: 20px;
             color: white;
             text-align: center;
+            display: block;
+            /* Ensure it's visible */
         }
 
         #spinner {
@@ -80,7 +82,7 @@
 <body>
 
     <!-- Loading Icon -->
-    <div id="loading">
+    <div id="loading" style="color: tomato;">
         <div id="spinner"></div>
         Loading...
     </div>
@@ -108,6 +110,7 @@
     </div>
 
     <script type="module">
+
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -146,6 +149,20 @@
         // Create boids
         const boidGeometry = new THREE.SphereGeometry(0.2, 8, 8);
         const boidMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+
+        // async function wait(ms) {
+        //     return new Promise(resolve => setTimeout(resolve, ms));
+        // }
+
+        // async function startSimulation() {
+        //     console.log("Simulating loading...");
+        //     await wait(10000); // Simulate a 3-second delay
+        //     hideLoading(); // Hide the loading spinner
+        //     animate(); // Start the animation loop
+        // }
+
+        // startSimulation();
 
         const createBoids = () => {
             // Remove existing boids
@@ -243,6 +260,7 @@
 
         // Start animation
         animate();
+
 
 
         // Hide the loading spinner after the scene is initialized
