@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boid's Algorithm - Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        // Import the Three.js library
+        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js';
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Boid parameters
+        const numBoids = 100;
+        const boids = [];
+        const boidSpeed = 0.1;
+        const perceptionRadius = 5;
+
+        // Create boids
+        const boidGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+        const boidMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+
+        for (let i = 0; i < numBoids; i++) {
+            const boid = new THREE.Mesh(boidGeometry, boidMaterial);
+            boid.position.set(
+                Math.random() * 50 - 25,
+                Math.random() * 50 - 25,
+                Math.random() * 50 - 25
+            );
+            boid.velocity = new THREE.Vector3(
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1
+            ).normalize().multiplyScalar(boidSpeed);
+            boids.push(boid);
+            scene.add(boid);
+        }
+
+        // Boid behavior functions
+        function align(boid, neighbors) {
+            const alignment = new THREE.Vector3();
+            neighbors.forEach(neighbor => alignment.add(neighbor.velocity));
+            if (neighbors.length > 0) alignment.divideScalar(neighbors.length).normalize();
+            return alignment;
+        }
+
+        function cohesion(boid, neighbors) {
+            const center = new THREE.Vector3();
+            neighbors.forEach(neighbor => center.add(neighbor.position));
+            if (neighbors.length > 0) center.divideScalar(neighbors.length).sub(boid.position).normalize();
+            return center;
+        }
+
+        function separation(boid, neighbors) {
+            const separation = new THREE.Vector3();
+            neighbors.forEach(neighbor => {
+                const diff = new THREE.Vector3().subVectors(boid.position, neighbor.position);
+                if (diff.length() > 0) separation.add(diff.normalize().divideScalar(diff.length()));
+            });
+            return separation;
+        }
+
+        // Update boids
+        function updateBoids() {
+            boids.forEach(boid => {
+                // Find neighbors
+                const neighbors = boids.filter(other => {
+                    return other !== boid && boid.position.distanceTo(other.position) < perceptionRadius;
+                });
+
+                // Apply behaviors
+                const alignment = align(boid, neighbors).multiplyScalar(0.5);
+                const cohesionForce = cohesion(boid, neighbors).multiplyScalar(0.5);
+                const separationForce = separation(boid, neighbors).multiplyScalar(1.5);
+
+                // Update velocity
+                boid.velocity.add(alignment).add(cohesionForce).add(separationForce).normalize().multiplyScalar(boidSpeed);
+
+                // Update position
+                boid.position.add(boid.velocity);
+
+                // Wrap around edges
+                ['x', 'y', 'z'].forEach(axis => {
+                    if (boid.position[axis] > 25) boid.position[axis] = -25;
+                    if (boid.position[axis] < -25) boid.position[axis] = 25;
+                });
+            });
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            updateBoids();
+            renderer.render(scene, camera);
+        }
+
+        // Camera position
+        camera.position.z = 50;
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
