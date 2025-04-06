@@ -44,6 +44,28 @@
                 transform: rotate(360deg);
             }
         }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+        }
+
+        #controls label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #controls input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <script type="importmap">
@@ -61,6 +83,19 @@
     <div id="loading">
         <div id="spinner"></div>
         Loading...
+    </div>
+
+
+    <!-- Controls Overlay -->
+    <div id="controls">
+        <label for="numBoids">Number of Boids: <span id="numBoidsValue">100</span></label>
+        <input type="range" id="numBoids" min="10" max="2000" value="100">
+
+        <label for="boidSpeed">Boid Speed: <span id="boidSpeedValue">0.1</span></label>
+        <input type="range" id="boidSpeed" min="0.01" max="1" step="0.01" value="0.1">
+
+        <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">5</span></label>
+        <input type="range" id="perceptionRadius" min="1" max="20" value="5">
     </div>
 
     <script type="module">
@@ -91,30 +126,39 @@
         controls.maxDistance = 100; // Maximum zoom distance
 
         // Boid parameters
-        const numBoids = 100;
+        let numBoids = 100;
+        let boidSpeed = 0.1;
+        let perceptionRadius = 5;
         const boids = [];
-        const boidSpeed = 0.1;
-        const perceptionRadius = 5;
 
         // Create boids
         const boidGeometry = new THREE.SphereGeometry(0.2, 8, 8);
         const boidMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 
-        for (let i = 0; i < numBoids; i++) {
-            const boid = new THREE.Mesh(boidGeometry, boidMaterial);
-            boid.position.set(
-                Math.random() * 50 - 25,
-                Math.random() * 50 - 25,
-                Math.random() * 50 - 25
-            );
-            boid.velocity = new THREE.Vector3(
-                Math.random() * 2 - 1,
-                Math.random() * 2 - 1,
-                Math.random() * 2 - 1
-            ).normalize().multiplyScalar(boidSpeed);
-            boids.push(boid);
-            scene.add(boid);
-        }
+        const createBoids = () => {
+            // Remove existing boids
+            boids.forEach(boid => scene.remove(boid));
+            boids.length = 0;
+
+            // Create new boids
+            for (let i = 0; i < numBoids; i++) {
+                const boid = new THREE.Mesh(boidGeometry, boidMaterial);
+                boid.position.set(
+                    Math.random() * 50 - 25,
+                    Math.random() * 50 - 25,
+                    Math.random() * 50 - 25
+                );
+                boid.velocity = new THREE.Vector3(
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1
+                ).normalize().multiplyScalar(boidSpeed);
+                boids.push(boid);
+                scene.add(boid);
+            }
+        };
+
+        createBoids();
 
         // Boid behavior functions
         function align(boid, neighbors) {
@@ -191,6 +235,23 @@
 
         // Hide the loading spinner after the scene is initialized
         hideLoading();
+
+        // Slider event listeners
+        document.getElementById('numBoids').addEventListener('input', function () {
+            numBoids = +this.value;
+            document.getElementById('numBoidsValue').textContent = numBoids;
+            createBoids();
+        });
+
+        document.getElementById('boidSpeed').addEventListener('input', function () {
+            boidSpeed = +this.value;
+            document.getElementById('boidSpeedValue').textContent = boidSpeed.toFixed(2);
+        });
+
+        document.getElementById('perceptionRadius').addEventListener('input', function () {
+            perceptionRadius = +this.value;
+            document.getElementById('perceptionRadiusValue').textContent = perceptionRadius;
+        });
     </script>
 </body>
 

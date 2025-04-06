@@ -5,6 +5,10 @@ How birds flock
 Check it live on the site below
 https://www.ebrahimkaram.com/Boid-s-Algorithm/
 
+If you want to try the the 3d model rendition
+https://www.ebrahimkaram.com/Boid-s-Algorithm/Three%20js/index.html
+
+
 
 
 # Resources
