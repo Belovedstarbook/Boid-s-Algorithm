@@ -96,6 +96,15 @@
 
         <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">5</span></label>
         <input type="range" id="perceptionRadius" min="1" max="20" value="5">
+        <!-- New Sliders -->
+        <label for="alignmentFactor">Alignment Factor: <span id="alignmentFactorValue">0.5</span></label>
+        <input type="range" id="alignmentFactor" min="0.1" max="2" step="0.1" value="0.5">
+
+        <label for="cohesionFactor">Cohesion Factor: <span id="cohesionFactorValue">0.5</span></label>
+        <input type="range" id="cohesionFactor" min="0.1" max="2" step="0.1" value="0.5">
+
+        <label for="separationFactor">Separation Factor: <span id="separationFactorValue">1.5</span></label>
+        <input type="range" id="separationFactor" min="0.1" max="3" step="0.1" value="1.5">
     </div>
 
     <script type="module">
@@ -129,6 +138,9 @@
         let numBoids = 100;
         let boidSpeed = 0.1;
         let perceptionRadius = 5;
+        let alignmentFactor = 0.5;
+        let cohesionFactor = 0.5;
+        let separationFactor = 1.5;
         const boids = [];
 
         // Create boids
@@ -193,9 +205,9 @@
                 });
 
                 // Apply behaviors
-                const alignment = align(boid, neighbors).multiplyScalar(0.5);
-                const cohesionForce = cohesion(boid, neighbors).multiplyScalar(0.5);
-                const separationForce = separation(boid, neighbors).multiplyScalar(1.5);
+                const alignment = align(boid, neighbors).multiplyScalar(alignmentFactor);
+                const cohesionForce = cohesion(boid, neighbors).multiplyScalar(cohesionFactor);
+                const separationForce = separation(boid, neighbors).multiplyScalar(separationFactor);
 
                 // Update velocity
                 boid.velocity.add(alignment).add(cohesionForce).add(separationForce).normalize().multiplyScalar(boidSpeed);
@@ -251,6 +263,21 @@
         document.getElementById('perceptionRadius').addEventListener('input', function () {
             perceptionRadius = +this.value;
             document.getElementById('perceptionRadiusValue').textContent = perceptionRadius;
+        });
+
+        document.getElementById('alignmentFactor').addEventListener('input', function () {
+            alignmentFactor = +this.value;
+            document.getElementById('alignmentFactorValue').textContent = alignmentFactor.toFixed(1);
+        });
+
+        document.getElementById('cohesionFactor').addEventListener('input', function () {
+            cohesionFactor = +this.value;
+            document.getElementById('cohesionFactorValue').textContent = cohesionFactor.toFixed(1);
+        });
+
+        document.getElementById('separationFactor').addEventListener('input', function () {
+            separationFactor = +this.value;
+            document.getElementById('separationFactorValue').textContent = separationFactor.toFixed(1);
         });
     </script>
 </body>
