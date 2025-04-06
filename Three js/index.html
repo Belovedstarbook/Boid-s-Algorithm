@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,15 +10,26 @@
             margin: 0;
             overflow: hidden;
         }
+
         canvas {
             display: block;
         }
     </style>
 </head>
+<script type="importmap">
+    {
+        "imports": {
+          "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/"
+        }
+    }
+    </script>
+
 <body>
+
     <script type="module">
-        // Import the Three.js library
-        import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js';
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
         // Scene setup
         const scene = new THREE.Scene();
@@ -25,6 +37,14 @@
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
+
+        // Add OrbitControls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Smooth movement
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false; // Disable panning in screen space
+        controls.minDistance = 10; // Minimum zoom distance
+        controls.maxDistance = 100; // Maximum zoom distance
 
         // Boid parameters
         const numBoids = 100;
@@ -107,14 +127,23 @@
         function animate() {
             requestAnimationFrame(animate);
             updateBoids();
+            controls.update(); // Update OrbitControls
             renderer.render(scene, camera);
         }
 
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
         // Camera position
-        camera.position.z = 50;
+        camera.position.set(0, 0, 50);
 
         // Start animation
         animate();
     </script>
 </body>
+
 </html>
