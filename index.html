@@ -4,80 +4,316 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boids Simulation</title>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-
+    <title>Boid's Algorithm - Three.js</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: black;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            /* Stack controls and SVG vertically */
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 50px;
+            color: rgb(255, 80, 80);
+            text-align: center;
+            display: block;
+            font-family: 'Arial', sans-serif;
+            text-shadow: 0 0 10px rgba(255, 80, 80, 0.7),
+                 0 0 20px rgba(255, 80, 80, 0.5),
+                 0 0 30px rgba(255, 197, 80, 0.899);
+                 -webkit-text-stroke: 2px rgb(255, 255, 255); /* Stroke width and color */
+    text-stroke: 4px rgb(252, 238, 238);
+            /* Ensure it's visible */
+        }
+
+        #spinner {
+            border: 4px solid rgba(255, 231, 48, 0.993);
+            border-top: 5px solid rgb(252, 185, 0);
+            border-radius: 50%;
+            width: 80px;
+            height: 40px;
+            animation: spin 3s linear infinite;
+            margin: 8px auto;
+        }
+        #spinner2 {
+            border: 4px solid rgba(255, 231, 48, 0.993);
+            border-top: 5px solid rgb(255, 189, 234);
+            border-radius: 50%;
+            width: 80px;
+            height: 60px;
+            animation: spin 3s linear infinite;
+            margin: 12px auto;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         #controls {
-            position: relative;
-            /* No longer absolute */
-            z-index: 1;
-            /* Ensure it stays on top of the SVG */
+            position: absolute;
+            top: 10px;
+            right: 10px;
             background-color: rgba(0, 0, 0, 0.7);
-            /* Semi-transparent background */
+            color: white;
             padding: 10px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+        }
+
+        #controls label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        #controls input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
         }
     </style>
 </head>
+<script type="importmap">
+    {
+        "imports": {
+          "three": "https://unpkg.com/three@0.155.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.155.0/examples/jsm/"
+        }
+    }
+    </script>
 
 <body>
-    <div id="fpsDisplay" style="position: absolute; top: 10px; right: 10px; color: white; font-size: 14px;">
-        FPS: 0
+
+    <!-- Loading Icon -->
+    <div id="loading" style="color: rgb(255, 31, 106);">
+        <div id="spinner"></div>
+        <div id="spinner2"></div>
+        
+        Loading...
     </div>
+
+
+    <!-- Controls Overlay -->
     <div id="controls">
-        <label for="boidCount">Boid Count:</label>
-        <input type="range" id="boidCount" min="10" max="1000" value="100">
-        <span id="boidCountValue">100</span> <!-- Display the initial value -->
-        <span> &nbsp; </span>
-        <label for="perceptionRange">Perception Range:</label>
-        <input type="range" id="perceptionRange" min="0.1" step="0.1" max="100" value="0.5">
-        <span id="perceptionRangeValue">20</span> <!-- Display the initial value -->
-        <span> &nbsp; </span>
+        <label for="numBoids">Number of Boids: <span id="numBoidsValue">100</span></label>
+        <input type="range" id="numBoids" min="10" max="2000" value="100">
 
-        <!-- New sliders for minSpeed and maxSpeed -->
-        <label for="minSpeed">Min Speed:</label>
-        <input type="range" id="minSpeed" min="0.1" max="20" step="0.1" value="0.5">
-        <span id="minSpeedValue">0.5</span> <!-- Display the initial value -->
-        <span> &nbsp; </span>
+        <label for="boidSpeed">Boid Speed: <span id="boidSpeedValue">0.1</span></label>
+        <input type="range" id="boidSpeed" min="0.01" max="1" step="0.01" value="0.1">
 
-        <label for="maxSpeed">Max Speed:</label>
-        <input type="range" id="maxSpeed" min="1" max="20" step="0.1" value="2">
-        <span id="maxSpeedValue">2</span> <!-- Display the initial value -->
+        <label for="perceptionRadius">Perception Radius: <span id="perceptionRadiusValue">5</span></label>
+        <input type="range" id="perceptionRadius" min="1" max="20" value="5">
+        <!-- New Sliders -->
+        <label for="alignmentFactor">Alignment Factor: <span id="alignmentFactorValue">0.5</span></label>
+        <input type="range" id="alignmentFactor" min="0.1" max="2" step="0.1" value="0.5">
 
+        <label for="cohesionFactor">Cohesion Factor: <span id="cohesionFactorValue">0.5</span></label>
+        <input type="range" id="cohesionFactor" min="0.1" max="2" step="0.1" value="0.5">
 
-        <label for="avoidFactor">Avoid Factor:</label>
-        <input type="range" id="avoidFactor" min="0.01" max="0.1" step="0.01" value="0.02">
-        <span id="avoidFactorValue">0.02</span>
-        <span> &nbsp; </span>
-
-        <label for="matchingFactor">Matching Factor:</label>
-        <input type="range" id="matchingFactor" min="0.01" max="0.1" step="0.01" value="0.05">
-        <span id="matchingFactorValue">0.05</span>
-        <span> &nbsp; </span>
-
-        <label for="centeringFactor">Centering Factor:</label>
-        <input type="range" id="centeringFactor" min="0.01" max="0.1" step="0.01" value="0.05">
-        <span id="centeringFactorValue">0.05</span>
-
-
-        <span> &nbsp; </span>
-        <button id="savePresetButton">Save Preset</button>
+        <label for="separationFactor">Separation Factor: <span id="separationFactorValue">1.5</span></label>
+        <input type="range" id="separationFactor" min="0.1" max="3" step="0.1" value="1.5">
     </div>
 
+    <script type="module">
 
-    <script src="boids.js"></script>
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Hide the loading spinner
+        const hideLoading = () => {
+            const loadingElement = document.getElementById('loading');
+            if (loadingElement) {
+                loadingElement.style.display = '1';
+            }
+        };
+
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Add OrbitControls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // Smooth movement
+        controls.dampingFactor = 0.05;
+        controls.screenSpacePanning = false; // Disable panning in screen space
+        controls.minDistance = 10; // Minimum zoom distance
+        controls.maxDistance = 100; // Maximum zoom distance
+
+        // Boid parameters
+        let numBoids = 2000;
+        let boidSpeed = 0.1;
+        let perceptionRadius = 4;
+        let alignmentFactor = 1.9;
+        let cohesionFactor = 2.0;
+        let separationFactor = 1.0;
+        const boids = [2];
+
+        // Create boids
+        const boidGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+        const boidMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 
 
+        // async function wait(ms) {
+        //     return new Promise(resolve => setTimeout(resolve, ms));
+        // }
+
+        // async function startSimulation() {
+        //     console.log("Simulating loading...");
+        //     await wait(10000); // Simulate a 3-second delay
+        //     hideLoading(); // Hide the loading spinner
+        //     animate(); // Start the animation loop
+        // }
+
+        // startSimulation();
+
+        const createBoids = () => {
+            // Remove existing boids
+            boids.forEach(boid => scene.remove(boid));
+            boids.length = 0;
+
+            // Create new boids
+            for (let i = 0; i < numBoids; i++) {
+                const boid = new THREE.Mesh(boidGeometry, boidMaterial);
+                boid.position.set(
+                    Math.random() * 50 - 25,
+                    Math.random() * 50 - 25,
+                    Math.random() * 50 - 25
+                );
+                boid.velocity = new THREE.Vector3(
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1
+                ).normalize().multiplyScalar(boidSpeed);
+                boids.push(boid);
+                scene.add(boid);
+            }
+        };
+
+        createBoids();
+
+        // Boid behavior functions
+        function align(boid, neighbors) {
+            const alignment = new THREE.Vector3();
+            neighbors.forEach(neighbor => alignment.add(neighbor.velocity));
+            if (neighbors.length > 0) alignment.divideScalar(neighbors.length).normalize();
+            return alignment;
+        }
+
+        function cohesion(boid, neighbors) {
+            const center = new THREE.Vector3();
+            neighbors.forEach(neighbor => center.add(neighbor.position));
+            if (neighbors.length > 0) center.divideScalar(neighbors.length).sub(boid.position).normalize();
+            return center;
+        }
+
+        function separation(boid, neighbors) {
+            const separation = new THREE.Vector3();
+            neighbors.forEach(neighbor => {
+                const diff = new THREE.Vector3().subVectors(boid.position, neighbor.position);
+                if (diff.length() > 0) separation.add(diff.normalize().divideScalar(diff.length()));
+            });
+            return separation;
+        }
+
+        // Update boids
+        function updateBoids() {
+            boids.forEach(boid => {
+                // Find neighbors
+                const neighbors = boids.filter(other => {
+                    return other !== boid && boid.position.distanceTo(other.position) < perceptionRadius;
+                });
+
+                // Apply behaviors
+                const alignment = align(boid, neighbors).multiplyScalar(alignmentFactor);
+                const cohesionForce = cohesion(boid, neighbors).multiplyScalar(cohesionFactor);
+                const separationForce = separation(boid, neighbors).multiplyScalar(separationFactor);
+
+                // Update velocity
+                boid.velocity.add(alignment).add(cohesionForce).add(separationForce).normalize().multiplyScalar(boidSpeed);
+
+                // Update position
+                boid.position.add(boid.velocity);
+
+                // Wrap around edges
+                ['x', 'y', 'z'].forEach(axis => {
+                    if (boid.position[axis] > 25) boid.position[axis] = -25;
+                    if (boid.position[axis] < -25) boid.position[axis] = 25;
+                });
+            });
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            updateBoids();
+            controls.update(); // Update OrbitControls
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Camera position
+        camera.position.set(0, 0, 50);
+
+        // Start animation
+        animate();
+
+
+
+        // Hide the loading spinner after the scene is initialized
+        hideLoading();
+
+        // Slider event listeners
+        document.getElementById('numBoids').addEventListener('input', function () {
+            numBoids = +this.value;
+            document.getElementById('numBoidsValue').textContent = numBoids;
+            createBoids();
+        });
+
+        document.getElementById('boidSpeed').addEventListener('input', function () {
+            boidSpeed = +this.value;
+            document.getElementById('boidSpeedValue').textContent = boidSpeed.toFixed(2);
+        });
+
+        document.getElementById('perceptionRadius').addEventListener('input', function () {
+            perceptionRadius = +this.value;
+            document.getElementById('perceptionRadiusValue').textContent = perceptionRadius;
+        });
+
+        document.getElementById('alignmentFactor').addEventListener('input', function () {
+            alignmentFactor = +this.value;
+            document.getElementById('alignmentFactorValue').textContent = alignmentFactor.toFixed(1);
+        });
+
+        document.getElementById('cohesionFactor').addEventListener('input', function () {
+            cohesionFactor = +this.value;
+            document.getElementById('cohesionFactorValue').textContent = cohesionFactor.toFixed(1);
+        });
+
+        document.getElementById('separationFactor').addEventListener('input', function () {
+            separationFactor = +this.value;
+            document.getElementById('separationFactorValue').textContent = separationFactor.toFixed(1);
+        });
+    </script>
 </body>
 
 </html>
